@@ -67,7 +67,6 @@ def download_video(url, quality, download_type, output_path):
         ydl_opts = {
             'format': format_map.get(quality, 'best'),
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-            'merge_output_format': 'mp4',
         }
     else:
         ydl_opts = {
