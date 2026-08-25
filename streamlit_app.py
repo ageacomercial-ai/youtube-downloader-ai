@@ -56,22 +56,35 @@ def format_size(size_bytes):
 
 
 def download_video(url, quality, download_type, output_path):
+    base_opts = {
+        'nocheckcertificate': True,
+        'geo_bypass': True,
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.youtube.com/',
+        },
+        'extractor_args': {'youtube': {'player_client': ['ios', 'web', 'mweb']}},
+    }
+
     if download_type == "Vídeo (MP4)":
         format_map = {
-            "Melhor qualidade": 'bestvideo+bestaudio/best',
-            "1080p": 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
-            "720p": 'bestvideo[height<=720]+bestaudio/best[height<=720]',
-            "480p": 'bestvideo[height<=480]+bestaudio/best[height<=480]',
-            "360p": 'bestvideo[height<=360]+bestaudio/best[height<=360]',
+            "Melhor qualidade": 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best',
+            "1080p": 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080]+bestaudio/best',
+            "720p": 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=720]+bestaudio/best',
+            "480p": 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=480]+bestaudio/best',
+            "360p": 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=360]+bestaudio/best',
         }
         ydl_opts = {
-            'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
+            **base_opts,
+            'format': format_map.get(quality, 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best'),
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
             'merge_output_format': 'mp4',
         }
     else:
         ydl_opts = {
-            'format': 'bestaudio/best',
+            **base_opts,
+            'format': 'bestaudio[ext=m4a]/bestaudio/best',
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
