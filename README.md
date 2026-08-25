@@ -1,14 +1,17 @@
-# YouTube Downloader
+# YouTube Video Creator
 
-Baixe vídeos e áudios do YouTube — 100% gratuito, open-source, sem cadastro.
+Crie vídeos para YouTube com imagens + narração — 100% gratuito, open-source.
 
 ## Funcionalidades
 
-- **Baixar vídeos** em MP4 (360p a Melhor Qualidade)
-- **Baixar áudio** em MP3, M4A ou WAV
-- **Baixar playlists** completas
-- **Informações do vídeo** (título, canal, views, likes)
-- **Interface limpa** e rápida
+- **Múltiplas imagens** — Upload de quantas quiser
+- **Narração neural** — 30 vozes em 10 idiomas (Edge TTS)
+- **Música de fundo** — Upload de MP3/WAV
+- **Efeito Ken Burns** — Zoom suave automático
+- **Texto sobre imagens** — Legendas personalizadas
+- **Resoluções** — 1080p, 720p, 4K, Vertical (Shorts)
+- **Transições** — Fade suave entre slides
+- **Sem marca d'água** — Vídeo final limpo
 
 ## Como usar
 
@@ -17,21 +20,12 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
-## Deploy gratuito (Streamlit Cloud)
+## Deploy gratuito
 
-1. Crie um repositório no GitHub com este código
-2. Acesse [share.streamlit.io](https://share.streamlit.io)
-3. Conecte o repositório
-4. Arquivo principal: `streamlit_app.py`
-5. Deploy!
-
-## Stack
-
-| Componente | Tecnologia | Custo |
-|------------|-----------|-------|
-| Downloader | yt-dlp | Grátis |
-| Interface | Streamlit | Grátis |
+1. GitHub repo com esses arquivos
+2. [share.streamlit.io](https://share.streamlit.io)
+3. Arquivo: `streamlit_app.py`
 
 ## Licença
 
-MIT — use como quiser.
+MIT
