@@ -64,7 +64,9 @@ def download_video(url, quality, download_type, output_path):
             'Accept-Language': 'en-US,en;q=0.9',
             'Referer': 'https://www.youtube.com/',
         },
-        'extractor_args': {'youtube': {'player_client': ['ios', 'web', 'mweb']}},
+        'extractor_args': {'youtube': {'player_client': ['tv', 'tv_embedded', 'web', 'ios']}},
+        'sleep_interval': 1,
+        'max_sleep_interval': 3,
     }
 
     if download_type == "Vídeo (MP4)":
