@@ -58,15 +58,16 @@ def format_size(size_bytes):
 def download_video(url, quality, download_type, output_path):
     if download_type == "Vídeo (MP4)":
         format_map = {
-            "Melhor qualidade": 'best',
-            "1080p": 'best[height<=1080]',
-            "720p": 'best[height<=720]',
-            "480p": 'best[height<=480]',
-            "360p": 'best[height<=360]',
+            "Melhor qualidade": 'bestvideo+bestaudio/best',
+            "1080p": 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',
+            "720p": 'bestvideo[height<=720]+bestaudio/best[height<=720]',
+            "480p": 'bestvideo[height<=480]+bestaudio/best[height<=480]',
+            "360p": 'bestvideo[height<=360]+bestaudio/best[height<=360]',
         }
         ydl_opts = {
-            'format': format_map.get(quality, 'best'),
+            'format': format_map.get(quality, 'bestvideo+bestaudio/best'),
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+            'merge_output_format': 'mp4',
         }
     else:
         ydl_opts = {
