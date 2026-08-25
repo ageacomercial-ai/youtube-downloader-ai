@@ -2,7 +2,6 @@ import streamlit as st
 import yt_dlp
 import os
 import tempfile
-import shutil
 from pathlib import Path
 
 st.set_page_config(
@@ -58,50 +57,31 @@ def format_size(size_bytes):
 
 def download_video(url, quality, download_type, output_path):
     if download_type == "Vídeo (MP4)":
-        if quality == "Melhor qualidade":
-            ydl_opts = {
-                'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-                'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-                'merge_output_format': 'mp4',
-            }
-        elif quality == "1080p":
-            ydl_opts = {
-                'format': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best',
-                'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-                'merge_output_format': 'mp4',
-            }
-        elif quality == "720p":
-            ydl_opts = {
-                'format': 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best',
-                'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-                'merge_output_format': 'mp4',
-            }
-        elif quality == "480p":
-            ydl_opts = {
-                'format': 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best',
-                'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-                'merge_output_format': 'mp4',
-            }
-        else:
-            ydl_opts = {
-                'format': 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best',
-                'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-                'merge_output_format': 'mp4',
-            }
-    elif download_type == "Áudio (MP3)":
+        format_map = {
+            "Melhor qualidade": 'best[ext=mp4]/best',
+            "1080p": 'best[height<=1080][ext=mp4]/best[height<=1080]/best',
+            "720p": 'best[height<=720][ext=mp4]/best[height<=720]/best',
+            "480p": 'best[height<=480][ext=mp4]/best[height<=480]/best',
+            "360p": 'best[height<=360][ext=mp4]/best[height<=360]/best',
+        }
+        ydl_opts = {
+            'format': format_map.get(quality, 'best[ext=mp4]/best'),
+            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+        }
+    elif download_type == "Áudio (WAV)":
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
         }
     else:
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3' if download_type == "Áudio (MP3)" else 'm4a',
+                'preferredquality': '192',
+            }],
         }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -151,7 +131,6 @@ with tab_single:
                     "Vídeo (MP4)",
                     "Áudio (MP3)",
                     "Áudio (M4A)",
-                    "Áudio (WAV)"
                 ])
 
             with col_quality:
@@ -171,32 +150,34 @@ with tab_single:
                     with st.spinner("Baixando... Isso pode levar alguns minutos."):
                         try:
                             filename = download_video(url, quality, download_type, tmpdir)
-                            filepath = os.path.join(tmpdir, os.listdir(tmpdir)[0])
+                            files = os.listdir(tmpdir)
+                            if not files:
+                                st.error("Nenhum arquivo foi baixado.")
+                            else:
+                                filepath = os.path.join(tmpdir, files[0])
+                                file_size = os.path.getsize(filepath)
+                                st.success(f"Download concluído! Tamanho: {format_size(file_size)}")
 
-                            file_size = os.path.getsize(filepath)
-                            st.success(f"Download concluído! Tamanho: {format_size(file_size)}")
+                                with open(filepath, 'rb') as f:
+                                    file_data = f.read()
 
-                            with open(filepath, 'rb') as f:
-                                file_data = f.read()
+                                ext = os.path.splitext(filepath)[1]
+                                mime_map = {
+                                    '.mp4': 'video/mp4',
+                                    '.mp3': 'audio/mpeg',
+                                    '.m4a': 'audio/mp4',
+                                    '.webm': 'video/webm',
+                                }
+                                mime = mime_map.get(ext, 'application/octet-stream')
+                                safe_title = "".join(c for c in info.get('title', 'video') if c.isalnum() or c in ' -_').strip()
 
-                            ext = os.path.splitext(filepath)[1]
-                            mime_map = {
-                                '.mp4': 'video/mp4',
-                                '.mp3': 'audio/mpeg',
-                                '.m4a': 'audio/mp4',
-                                '.wav': 'audio/wav',
-                                '.webm': 'video/webm',
-                            }
-                            mime = mime_map.get(ext, 'application/octet-stream')
-                            safe_title = "".join(c for c in info.get('title', 'video') if c.isalnum() or c in ' -_').strip()
-
-                            st.download_button(
-                                f"📥 Baixar {safe_title}{ext}",
-                                data=file_data,
-                                file_name=f"{safe_title}{ext}",
-                                mime=mime,
-                                use_container_width=True
-                            )
+                                st.download_button(
+                                    f"📥 Baixar {safe_title}{ext}",
+                                    data=file_data,
+                                    file_name=f"{safe_title}{ext}",
+                                    mime=mime,
+                                    use_container_width=True
+                                )
                         except Exception as e:
                             st.error(f"Erro ao baixar: {e}")
 
@@ -225,8 +206,7 @@ with tab_playlist:
             entries = playlist_info.get('entries', [])
             for i, entry in enumerate(entries[:50], 1):
                 title = entry.get('title', f'Vídeo {i}')
-                duration = entry.get('duration_string', 'N/A')
-                with st.expander(f"{i}. {title} ({duration})"):
+                with st.expander(f"{i}. {title}"):
                     vid_url = f"https://www.youtube.com/watch?v={entry.get('id', '')}"
                     st.code(vid_url)
 
@@ -237,26 +217,14 @@ with tab_playlist:
                 "Áudio (MP3)"
             ], key="playlist_type")
 
-            playlist_quality = st.selectbox("Qualidade (playlist):", [
-                "Melhor qualidade",
-                "720p",
-                "480p"
-            ], key="playlist_quality") if "Vídeo" in playlist_dl_type else "Melhor qualidade"
-
             if st.button("⬇️ Baixar Playlist", type="primary", use_container_width=True):
                 with tempfile.TemporaryDirectory() as tmpdir:
                     with st.spinner(f"Baixando {len(entries)} vídeos... Isso pode demorar."):
                         try:
                             if "Vídeo" in playlist_dl_type:
-                                format_str = {
-                                    "Melhor qualidade": 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
-                                    "720p": 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]',
-                                    "480p": 'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480]',
-                                }.get(playlist_quality, 'best')
                                 ydl_opts = {
-                                    'format': format_str,
+                                    'format': 'best[ext=mp4]/best',
                                     'outtmpl': os.path.join(tmpdir, '%(playlist_index)s - %(title)s.%(ext)s'),
-                                    'merge_output_format': 'mp4',
                                     'noplaylist': False,
                                 }
                             else:
@@ -321,7 +289,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("#### Formatos suportados:")
     st.markdown("- 🎬 MP4 (vídeo)")
-    st.markdown("- 🎵 MP3, M4A, WAV (áudio)")
+    st.markdown("- 🎵 MP3, M4A (áudio)")
     st.markdown("- 📋 Playlists completas")
 
 st.divider()
