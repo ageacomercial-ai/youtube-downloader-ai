@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: neural-studio
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless=true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: "true"

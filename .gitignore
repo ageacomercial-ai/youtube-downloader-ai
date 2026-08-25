@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+env/
+*.mp3
+*.png
+*.jpg
+.git/
+.streamlit/secrets.toml
